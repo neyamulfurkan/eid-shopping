@@ -81,7 +81,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Use body shape to determine mode: public validation sends { code, subtotal },
     // admin creation sends { code, type, value }. This prevents logged-in admins
     // from accidentally hitting the creation branch when testing checkout.
-    const isPublicValidation = 'subtotal' in body;
+    const isPublicValidation = !('type' in body);
 
     if (!isAdmin || isPublicValidation) {
       const { code, subtotal } = body as { code?: unknown; subtotal?: unknown };
@@ -100,8 +100,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         where: { code: upperCode },
       });
 
-      if (!promo || !promo.isActive) {
+      if (!promo) {
         return ok({ valid: false, reason: 'Invalid promo code' });
+      }
+      if (!promo.isActive) {
+        return ok({ valid: false, reason: 'This promo code is no longer active' });
       }
 
       if (promo.expiresAt && promo.expiresAt < new Date()) {
