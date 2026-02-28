@@ -1,0 +1,425 @@
+/* src/app/globals.css */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   CSS CUSTOM PROPERTIES — Green-Gold (Eid Classic) Preset
+   These are the visual fallback values rendered before
+   SiteConfigContext hydrates and injects DB-sourced theme values.
+   Values here must match the Green-Gold preset exactly.
+   ============================================================ */
+
+:root {
+  --color-primary: #1B5E20;
+  --color-secondary: #F9A825;
+  --color-accent: #FFD54F;
+  --color-bg: #FAFAFA;
+  --color-surface: #FFFFFF;
+  --color-text: #1A1A1A;
+  --font-family: 'Hind Siliguri', sans-serif;
+}
+
+/* ============================================================
+   DARK MODE OVERRIDES
+   Applied when SiteConfigContext adds the "dark" class to
+   the <html> element. Uses html.dark selector per Tailwind's
+   darkMode: 'class' configuration.
+   ============================================================ */
+
+html.dark {
+  --color-primary: #4CAF50;
+  --color-secondary: #FFB300;
+  --color-accent: #FFD54F;
+  --color-bg: #121212;
+  --color-surface: #1E1E1E;
+  --color-text: #F5F5F5;
+}
+
+/* ============================================================
+   BASE BODY STYLES
+   Apply theme variables globally to all content.
+   ============================================================ */
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    font-family: var(--font-family);
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  /* Focus ring for accessibility */
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  /* Remove default list styles in nav contexts */
+  nav ul,
+  nav ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Consistent image rendering */
+  img,
+  video {
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  /* Remove default button styles */
+  button {
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-family: inherit;
+  }
+
+  /* Anchor base */
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* Heading rhythm */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-family);
+    line-height: 1.25;
+    font-weight: 700;
+  }
+
+  /* Input and textarea base */
+  input,
+  textarea,
+  select {
+    font-family: var(--font-family);
+    font-size: 1rem;
+  }
+}
+
+/* ============================================================
+   SCROLLBAR STYLING
+   Thin scrollbar with brand colors for a polished look.
+   Firefox: scrollbar-width and scrollbar-color.
+   WebKit: ::-webkit-scrollbar pseudo-elements.
+   ============================================================ */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-secondary) var(--color-surface);
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--color-surface);
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--color-secondary);
+  border-radius: 999px;
+  border: 1px solid var(--color-surface);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-primary);
+}
+
+/* Hide scrollbar on horizontal pill/filter rows while keeping scroll */
+.scrollbar-hide {
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ============================================================
+   COMPONENT UTILITIES
+   Reusable patterns that don't belong in individual components
+   but are too specific for Tailwind utilities alone.
+   ============================================================ */
+
+@layer components {
+  /* Brand-colored focus ring for form inputs */
+  .input-base {
+    @apply w-full rounded-xl border border-gray-200 bg-brand-surface px-4 py-2.5
+           text-brand-text placeholder-gray-400
+           focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-brand-primary
+           transition-colors duration-150;
+  }
+
+  html.dark .input-base {
+    @apply border-gray-700 placeholder-gray-500;
+  }
+
+  /* Card base */
+  .card-base {
+    @apply rounded-2xl bg-brand-surface shadow-sm overflow-hidden;
+  }
+
+  /* Section container */
+  .section-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Badge variants */
+  .badge-sale {
+    @apply inline-block rounded-full bg-red-500 text-white text-xs font-semibold px-2 py-0.5;
+  }
+
+  .badge-flash {
+    @apply inline-block rounded-full bg-brand-accent text-brand-text text-xs font-semibold px-2 py-0.5;
+  }
+
+  .badge-new {
+    @apply inline-block rounded-full bg-brand-primary text-white text-xs font-semibold px-2 py-0.5;
+  }
+
+  /* Status badge colors for order table */
+  .status-pending    { @apply bg-yellow-100 text-yellow-800; }
+  .status-confirmed  { @apply bg-blue-100 text-blue-800; }
+  .status-shipped    { @apply bg-purple-100 text-purple-800; }
+  .status-delivered  { @apply bg-green-100 text-green-800; }
+  .status-cancelled  { @apply bg-red-100 text-red-800; }
+
+  html.dark .status-pending    { @apply bg-yellow-900/40 text-yellow-300; }
+  html.dark .status-confirmed  { @apply bg-blue-900/40 text-blue-300; }
+  html.dark .status-shipped    { @apply bg-purple-900/40 text-purple-300; }
+  html.dark .status-delivered  { @apply bg-green-900/40 text-green-300; }
+  html.dark .status-cancelled  { @apply bg-red-900/40 text-red-300; }
+}
+
+/* ============================================================
+   ANIMATION KEYFRAMES
+   Supplemental keyframes beyond what Tailwind defines by default.
+   Tailwind config references these by name in extend.keyframes.
+   ============================================================ */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
+}
+
+/* Skeleton loading shimmer effect used in ProductGrid */
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface) 25%,
+    color-mix(in srgb, var(--color-secondary) 10%, var(--color-surface)) 50%,
+    var(--color-surface) 75%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.5s infinite linear;
+}
+
+/* ============================================================
+   PRODUCT IMAGE ZOOM
+   Applied to the main image container in ProductImageGallery.
+   Overflow is hidden on the wrapper; transform is set inline
+   via JS mouse-move handler.
+   ============================================================ */
+
+.zoom-container {
+  overflow: hidden;
+  cursor: zoom-in;
+}
+
+.zoom-container img {
+  transition: transform 0.1s ease-out;
+  transform-origin: var(--zoom-x, 50%) var(--zoom-y, 50%);
+}
+
+.zoom-container:hover img {
+  transform: scale(2);
+}
+
+/* ============================================================
+   PROSE OVERRIDES
+   Applied to blog post bodies rendered with @tailwindcss/typography.
+   Overrides default prose link and heading colors to use brand vars.
+   ============================================================ */
+
+.prose {
+  --tw-prose-links: var(--color-primary);
+  --tw-prose-headings: var(--color-text);
+  --tw-prose-body: var(--color-text);
+  --tw-prose-bold: var(--color-text);
+  --tw-prose-counters: var(--color-secondary);
+  --tw-prose-bullets: var(--color-secondary);
+  --tw-prose-hr: color-mix(in srgb, var(--color-text) 15%, transparent);
+  --tw-prose-quotes: var(--color-primary);
+  --tw-prose-quote-borders: var(--color-secondary);
+  --tw-prose-code: var(--color-primary);
+  --tw-prose-pre-bg: var(--color-surface);
+}
+
+/* ============================================================
+   PRINT STYLES
+   Used when printing QR codes from the admin product edit page.
+   Hides navigation, sidebar, and all non-print-target elements.
+   Shows only the element marked with the .print-target class.
+   ============================================================ */
+
+@media print {
+  /* Hide everything by default */
+  body > * {
+    display: none !important;
+  }
+
+  /* Show only the element designated for printing */
+  .print-target,
+  .print-target * {
+    display: block !important;
+    visibility: visible !important;
+  }
+
+  .print-target {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+  }
+
+  /* QR code container specific styles */
+  .qr-print-container {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    font-family: var(--font-family);
+    text-align: center;
+  }
+
+  .qr-print-container img {
+    width: 240px;
+    height: 240px;
+    display: block !important;
+  }
+
+  .qr-print-container .qr-label {
+    margin-top: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #000;
+  }
+
+  .qr-print-container .qr-url {
+    margin-top: 4px;
+    font-size: 11px;
+    color: #444;
+    word-break: break-all;
+  }
+
+  /* Ensure page breaks don't split the QR block */
+  .qr-print-container {
+    page-break-inside: avoid;
+  }
+}
+
+/* ============================================================
+   ANNOUNCEMENT BAR
+   Full-width strip rendered above the Navbar.
+   ============================================================ */
+
+.announcement-bar {
+  background-color: var(--color-primary);
+  color: #ffffff;
+  text-align: center;
+  padding: 8px 16px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.announcement-bar a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ============================================================
+   ADMIN LAYOUT UTILITIES
+   Applied within the admin route group only.
+   ============================================================ */
+
+.admin-table {
+  @apply w-full border-collapse text-sm;
+}
+
+.admin-table th {
+  @apply text-left font-semibold text-gray-500 uppercase tracking-wider
+         px-4 py-3 border-b border-gray-200 bg-gray-50 whitespace-nowrap;
+}
+
+html.dark .admin-table th {
+  @apply text-gray-400 border-gray-700 bg-gray-800/50;
+}
+
+.admin-table td {
+  @apply px-4 py-3 border-b border-gray-100 align-middle;
+}
+
+html.dark .admin-table td {
+  @apply border-gray-800;
+}
+
+.admin-table tr:last-child td {
+  @apply border-b-0;
+}
+
+.admin-table tbody tr:hover {
+  @apply bg-gray-50;
+}
+
+html.dark .admin-table tbody tr:hover {
+  @apply bg-gray-800/30;
+}

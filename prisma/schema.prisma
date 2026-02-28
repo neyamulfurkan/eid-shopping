@@ -1,0 +1,252 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────────
+
+enum Role {
+  ADMIN
+}
+
+enum PaymentMethod {
+  BKASH
+  NAGAD
+  ROCKET
+  COD
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum PromoType {
+  PERCENTAGE
+  FIXED
+}
+
+// ─────────────────────────────────────────────
+// Models
+// ─────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  role      Role     @default(ADMIN)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model SiteConfig {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@map("site_configs")
+}
+
+model Category {
+  id           String    @id @default(cuid())
+  nameEn       String
+  nameBn       String
+  slug         String    @unique
+  imageUrl     String?
+  displayOrder Int       @default(0)
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  products     Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id                String           @id @default(cuid())
+  nameEn            String
+  nameBn            String
+  slug              String           @unique
+  descriptionEn     String?
+  descriptionBn     String?
+  basePrice         Decimal
+  salePrice         Decimal?
+  costPrice         Decimal?
+  stockQty          Int              @default(0)
+  lowStockThreshold Int              @default(5)
+  isActive          Boolean          @default(true)
+  isFeatured        Boolean          @default(false)
+  isFlashDeal       Boolean          @default(false)
+  flashDealEndsAt   DateTime?
+  categoryId        String
+  category          Category         @relation(fields: [categoryId], references: [id])
+  images            ProductImage[]
+  variants          ProductVariant[]
+  orderItems        OrderItem[]
+  reviews           Review[]
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  @@index([categoryId])
+  @@index([isActive])
+  @@index([isFeatured])
+  @@index([isFlashDeal])
+  @@index([slug])
+  @@map("products")
+}
+
+model ProductImage {
+  id           String  @id @default(cuid())
+  productId    String
+  product      Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url          String
+  cloudinaryId String
+  displayOrder Int     @default(0)
+  isDefault    Boolean @default(false)
+
+  @@index([productId])
+  @@map("product_images")
+}
+
+model ProductVariant {
+  id            String  @id @default(cuid())
+  productId     String
+  product       Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  type          String
+  value         String
+  priceModifier Decimal @default(0)
+  stockQty      Int     @default(0)
+  isActive      Boolean @default(true)
+
+  @@index([productId])
+  @@map("product_variants")
+}
+
+model Banner {
+  id           String   @id @default(cuid())
+  imageUrl     String
+  cloudinaryId String
+  titleEn      String?
+  titleBn      String?
+  subtitleEn   String?
+  subtitleBn   String?
+  ctaTextEn    String?
+  ctaTextBn    String?
+  ctaLink      String?
+  displayOrder Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  @@map("banners")
+}
+
+model Order {
+  id              String        @id @default(cuid())
+  orderNumber     String        @unique @default(cuid())
+  customerName    String
+  customerPhone   String
+  customerAddress String
+  subtotal        Decimal
+  discount        Decimal       @default(0)
+  total           Decimal
+  promoCode       String?
+  paymentMethod   PaymentMethod
+  paymentStatus   PaymentStatus @default(PENDING)
+  transactionId   String?
+  orderStatus     OrderStatus   @default(PENDING)
+  notes           String?
+  items           OrderItem[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([orderStatus])
+  @@index([customerPhone])
+  @@index([createdAt])
+  @@map("orders")
+}
+
+model OrderItem {
+  id             String  @id @default(cuid())
+  orderId        String
+  order          Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId      String
+  product        Product @relation(fields: [productId], references: [id])
+  productNameEn  String
+  productNameBn  String
+  variantInfo    String?
+  unitPrice      Decimal
+  quantity       Int
+  total          Decimal
+
+  @@index([orderId])
+  @@index([productId])
+  @@map("order_items")
+}
+
+model Review {
+  id           String   @id @default(cuid())
+  productId    String
+  product      Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  reviewerName String
+  rating       Int
+  comment      String?
+  isApproved   Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  @@index([productId])
+  @@map("reviews")
+}
+
+model PromoCode {
+  id             String    @id @default(cuid())
+  code           String    @unique
+  type           PromoType
+  value          Decimal
+  minOrderAmount Decimal   @default(0)
+  maxUses        Int?
+  usedCount      Int       @default(0)
+  isActive       Boolean   @default(true)
+  expiresAt      DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@map("promo_codes")
+}
+
+model BlogPost {
+  id           String    @id @default(cuid())
+  titleEn      String
+  titleBn      String?
+  slug         String    @unique
+  excerptEn    String?
+  excerptBn    String?
+  bodyEn       String
+  bodyBn       String?
+  thumbnailUrl String?
+  cloudinaryId String?
+  isPublished  Boolean   @default(false)
+  publishedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@map("blog_posts")
+}
