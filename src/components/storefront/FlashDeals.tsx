@@ -36,7 +36,7 @@ export const FlashDeals: React.FC<FlashDealsProps> = ({ products }) => {
   const earliestEndsAt = useMemo<Date | null>(() => {
     const timestamps = products
       .map((p) => p.flashDealEndsAt)
-      .filter((d): d is Date => d !== null && d !== undefined);
+      .filter((d): d is Date => d !== null && d !== undefined && new Date(d).getTime() > Date.now());
 
     if (timestamps.length === 0) return null;
 

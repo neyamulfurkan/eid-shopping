@@ -143,7 +143,7 @@ function serializeProduct(
     isFlashDeal: row.isFlashDeal,
     isActive: row.isActive,
     isFeatured: row.isFeatured,
-    flashDealEndsAt: row.flashDealEndsAt,
+     flashDealEndsAt: row.flashDealEndsAt ? new Date(row.flashDealEndsAt).toISOString() as unknown as Date : null,
     descriptionEn: row.descriptionEn,
     descriptionBn: row.descriptionBn,
     stockQty: row.stockQty,
