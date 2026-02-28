@@ -1,7 +1,7 @@
 // src/components/storefront/FlashDeals.tsx
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Flame } from 'lucide-react';
 import type { AdminProductListItem } from '@/lib/types';
 import { useLanguage } from '@/context/LanguageContext';
@@ -34,9 +34,9 @@ export const FlashDeals: React.FC<FlashDealsProps> = ({ products }) => {
   // Compute the earliest flashDealEndsAt among all provided products.
   // Products without a flashDealEndsAt timestamp are excluded from the min calculation.
   const earliestEndsAt = useMemo<Date | null>(() => {
-    const timestamps = products
+        const timestamps = products
       .map((p) => p.flashDealEndsAt)
-      .filter((d): d is Date => d !== null && d !== undefined && new Date(d).getTime() > Date.now());
+      .filter((d): d is string => d !== null && d !== undefined && new Date(d).getTime() > Date.now());
 
     if (timestamps.length === 0) return null;
 
@@ -44,8 +44,11 @@ export const FlashDeals: React.FC<FlashDealsProps> = ({ products }) => {
     return new Date(minTime);
   }, [products]);
 
-  // Nothing to render if no products are provided.
+    const [isExpired, setIsExpired] = useState(false);
+
+  // Nothing to render if no products are provided or all deals have expired.
   if (!products || products.length === 0) return null;
+  if (isExpired) return null;
 
   return (
     <AnimatedSection>
@@ -65,9 +68,9 @@ export const FlashDeals: React.FC<FlashDealsProps> = ({ products }) => {
           </h2>
 
           {/* Countdown Timer — only shown when we have a valid end date */}
-          {earliestEndsAt !== null && (
+                    {earliestEndsAt !== null && (
             <div className="flex-shrink-0">
-              <CountdownTimer endsAt={earliestEndsAt} />
+              <CountdownTimer endsAt={earliestEndsAt} onExpire={() => setIsExpired(true)} />
             </div>
           )}
         </div>

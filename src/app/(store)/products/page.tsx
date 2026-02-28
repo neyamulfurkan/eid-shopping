@@ -365,10 +365,11 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     }
   }
 
-  const products: AdminProductListItem[] = rawProducts.map((p) => ({
+    const products: AdminProductListItem[] = rawProducts.map((p) => ({
     ...p,
     basePrice: parseFloat(p.basePrice.toString()),
     salePrice: p.salePrice ? parseFloat(p.salePrice.toString()) : null,
+    flashDealEndsAt: p.flashDealEndsAt ? p.flashDealEndsAt.toISOString() : null,
     averageRating: ratingMap.get(p.id),
   }));
 

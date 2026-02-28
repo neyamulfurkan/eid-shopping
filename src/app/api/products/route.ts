@@ -111,6 +111,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           isFeatured: true,
           isFlashDeal: true,
           flashDealEndsAt: true,
+          descriptionEn: true,
+          descriptionBn: true,
           createdAt: true,
           updatedAt: true,
           category: {
@@ -140,9 +142,38 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       prisma.product.count({ where }),
     ]);
 
+        const serialized: AdminProductListItem[] = products.map((p) => ({
+      id: p.id,
+      slug: p.slug,
+      nameEn: p.nameEn,
+      nameBn: p.nameBn,
+      descriptionEn: p.descriptionEn ?? null,
+      descriptionBn: p.descriptionBn ?? null,
+      basePrice: Number(p.basePrice),
+      salePrice: p.salePrice !== null ? Number(p.salePrice) : null,
+      isFlashDeal: p.isFlashDeal,
+      isActive: p.isActive,
+      isFeatured: p.isFeatured,
+            flashDealEndsAt: p.flashDealEndsAt
+        ? p.flashDealEndsAt.toISOString()
+        : null,
+      stockQty: p.stockQty,
+      lowStockThreshold: p.lowStockThreshold,
+      images: p.images.map((img) => ({
+        url: img.url,
+        cloudinaryId: img.cloudinaryId,
+        isDefault: img.isDefault,
+      })),
+      category: {
+        nameEn: p.category.nameEn,
+        nameBn: p.category.nameBn,
+      },
+      _count: p._count,
+    }));
+
     return NextResponse.json({
       data: {
-        products: products as unknown as AdminProductListItem[],
+        products: serialized,
         total,
         page,
         limit,

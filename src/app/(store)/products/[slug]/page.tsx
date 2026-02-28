@@ -51,10 +51,13 @@ function serialiseProduct(product: {
   category: { nameEn: string; nameBn: string };
   _count?: { reviews: number };
 }): AdminProductListItem {
-  return {
+    return {
     ...product,
     basePrice: parseFloat(product.basePrice.toString()),
     salePrice: product.salePrice ? parseFloat(product.salePrice.toString()) : null,
+    flashDealEndsAt: product.flashDealEndsAt
+      ? product.flashDealEndsAt.toISOString()
+      : null,
   };
 }
 

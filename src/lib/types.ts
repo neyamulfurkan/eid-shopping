@@ -150,7 +150,7 @@ export interface AdminProductListItem {
   isFlashDeal: boolean;
   isActive: boolean;
   isFeatured: boolean;
-  flashDealEndsAt: Date | null;
+  flashDealEndsAt: string | null;
   descriptionEn?: string | null;
   descriptionBn?: string | null;
   stockQty: number;

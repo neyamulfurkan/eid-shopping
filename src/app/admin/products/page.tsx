@@ -94,7 +94,7 @@ export default async function AdminProductsPage({
       isFlashDeal: p.isFlashDeal,
       isActive: p.isActive,
       isFeatured: p.isFeatured,
-      flashDealEndsAt: p.flashDealEndsAt,
+      flashDealEndsAt: p.flashDealEndsAt ? p.flashDealEndsAt.toISOString() : null,
       stockQty: p.stockQty,
       lowStockThreshold: p.lowStockThreshold,
       images: p.images.map((img) => ({

@@ -30,6 +30,7 @@ interface FormErrors {
   basePrice?: string;
   stockQty?: string;
   slug?: string;
+  flashDealEndsAt?: string;
 }
 
 interface ProductFormProps {
@@ -225,8 +226,14 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     if (!slug.trim()) next.slug = 'Slug is required.';
     const bp = parseFloat(basePrice);
     if (isNaN(bp) || bp <= 0) next.basePrice = 'Base price must be greater than 0.';
-    const sq = parseInt(stockQty, 10);
+        const sq = parseInt(stockQty, 10);
     if (isNaN(sq) || sq < 0) next.stockQty = 'Stock quantity cannot be negative.';
+    if (isFlashDeal && flashDealEndsAt && new Date(flashDealEndsAt) <= new Date()) {
+      next.flashDealEndsAt = 'Flash deal end time must be in the future.';
+    }
+    if (isFlashDeal && !flashDealEndsAt) {
+      next.flashDealEndsAt = 'Flash deal end time is required when flash deal is enabled.';
+    }
     setErrors(next);
     return Object.keys(next).length === 0;
   }, [nameEn, categoryId, slug, basePrice, stockQty]);
@@ -542,7 +549,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
           ))}
         </div>
 
-        {isFlashDeal && (
+                {isFlashDeal && (
           <div className="mt-4 max-w-xs">
             <label htmlFor="flashDealEndsAt" className={LABEL}>Flash Deal Ends At</label>
             <input
@@ -552,6 +559,9 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               onChange={(e) => setFlashDealEndsAt(e.target.value)}
               className={INPUT}
             />
+            {errors.flashDealEndsAt && (
+              <p className="mt-1 text-xs text-red-500">{errors.flashDealEndsAt}</p>
+            )}
           </div>
         )}
       </section>
