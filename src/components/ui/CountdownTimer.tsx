@@ -114,8 +114,11 @@ const Separator: React.FC = () => (
  * @param onExpire - Optional callback invoked once when the timer reaches zero.
  */
 export const CountdownTimer: React.FC<CountdownTimerProps> = ({ endsAt, onExpire }) => {
-  const [timeLeft, setTimeLeft] = useState<TimeLeft>(() => calculateTimeLeft(endsAt));
-  const [expired, setExpired] = useState<boolean>(() => isExpired(endsAt));
+  // Always start with zeros — matches server render exactly (no Date.now() on SSR).
+  // The useEffect below corrects this after hydration completes.
+  const [timeLeft, setTimeLeft] = useState<TimeLeft>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [expired, setExpired]   = useState<boolean>(false);
+  const [mounted, setMounted]   = useState<boolean>(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const onExpireRef = useRef(onExpire);
 
@@ -124,7 +127,13 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({ endsAt, onExpire
     onExpireRef.current = onExpire;
   }, [onExpire]);
 
+  // Set mounted=true after hydration so the timer only renders on the client.
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
     // If already expired on mount, fire callback immediately and bail out
     if (isExpired(endsAt)) {
       setExpired(true);
@@ -157,6 +166,9 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({ endsAt, onExpire
       }
     };
   }, [endsAt]);
+
+  // Render nothing until client has mounted — avoids SSR/client HTML mismatch.
+  if (!mounted) return null;
 
   if (expired) {
     return (
