@@ -388,7 +388,7 @@ export const Navbar: React.FC = () => {
               transition={{ duration: 0.18, ease: 'easeOut' }}
               className={cn(
                 'absolute top-full left-0 right-0 z-50',
-                'bg-brand-surface/98 backdrop-blur-sm',
+                'bg-brand-surface backdrop-blur-sm',
                 'border-b border-brand-secondary/20 shadow-lg',
               )}
             >
