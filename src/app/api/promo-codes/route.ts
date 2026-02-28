@@ -78,7 +78,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     // ── Public validation mode ──────────────────────────────────────────────
-    if (!isAdmin) {
+    // Use body shape to determine mode: public validation sends { code, subtotal },
+    // admin creation sends { code, type, value }. This prevents logged-in admins
+    // from accidentally hitting the creation branch when testing checkout.
+    const isPublicValidation = 'subtotal' in body;
+
+    if (!isAdmin || isPublicValidation) {
       const { code, subtotal } = body as { code?: unknown; subtotal?: unknown };
 
       if (typeof code !== 'string' || !code.trim()) {

@@ -233,6 +233,17 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 
   if (validationErrors.length > 0) {
+    console.error('[POST /api/orders] Validation errors:', validationErrors, {
+      customerName: customerName?.trim()?.length,
+      customerPhone,
+      customerAddress: customerAddress?.trim()?.length,
+      paymentMethod,
+      hasTransactionId: !!transactionId,
+      itemCount: Array.isArray(items) ? items.length : 'not array',
+      firstItemProductId: Array.isArray(items) && items[0] ? items[0].productId : 'none',
+      firstItemQuantity: Array.isArray(items) && items[0] ? items[0].quantity : 'none',
+      firstItemQuantityIsInt: Array.isArray(items) && items[0] ? Number.isInteger(items[0].quantity) : 'none',
+    });
     return NextResponse.json(
       { error: 'Validation failed', details: validationErrors },
       { status: 400 },
