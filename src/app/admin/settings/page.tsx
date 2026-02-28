@@ -4,6 +4,7 @@ import React from 'react';
 import { getCachedSiteConfig } from '@/lib/siteConfig';
 import { SiteInfoForm } from '@/components/admin/SiteInfoForm';
 import { PaymentSettings } from '@/components/admin/PaymentSettings';
+import { NavFooterEditor } from '@/components/admin/NavFooterEditor';
 
 /**
  * Admin settings page providing store information and payment configuration.
@@ -54,6 +55,22 @@ export default async function AdminSettingsPage(): Promise<React.JSX.Element> {
 
           <div className="rounded-2xl border border-brand-secondary/20 bg-brand-surface p-6 shadow-sm">
             <PaymentSettings initialConfig={initialConfig} />
+          </div>
+        </section>
+
+        {/* Divider */}
+        <hr className="mb-10 border-brand-secondary/20" />
+
+        {/* Section 3 — Navigation, Footer & Badges */}
+        <section>
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold text-brand-text">Navigation, Footer &amp; Badges</h2>
+            <p className="mt-1 text-sm text-brand-text/60">
+              Edit navbar links, footer columns, and trust badge visibility.
+            </p>
+          </div>
+          <div className="rounded-2xl border border-brand-secondary/20 bg-brand-surface p-6 shadow-sm">
+            <NavFooterEditor initialConfig={initialConfig} />
           </div>
         </section>
 

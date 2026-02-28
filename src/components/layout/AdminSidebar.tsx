@@ -20,6 +20,7 @@ import {
   X,
   Store,
   Tag,
+  Percent,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -48,6 +49,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Content',     href: '/admin/content',      icon: FileText },
   { label: 'Blog',        href: '/admin/blog',         icon: BookOpen },
   { label: 'Reviews',     href: '/admin/reviews',      icon: Star },
+  { label: 'Promo Codes', href: '/admin/promo-codes',  icon: Percent },
   { label: 'Settings',    href: '/admin/settings',     icon: Settings },
 ];
 

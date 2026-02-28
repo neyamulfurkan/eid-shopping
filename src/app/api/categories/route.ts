@@ -35,8 +35,12 @@ async function requireAdmin(): Promise<
  */
 export async function GET(): Promise<NextResponse> {
   try {
+    // Check if this is an admin request (has session) or public storefront request
+    const session = await auth();
+    const isAdmin = session?.user?.role === 'ADMIN';
+
     const categories = await prisma.category.findMany({
-      where: { isActive: true },
+      where: isAdmin ? undefined : { isActive: true },
       orderBy: { displayOrder: 'asc' },
       include: {
         _count: {

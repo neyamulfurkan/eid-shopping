@@ -13,6 +13,8 @@ import {
   Instagram,
   Video,
   Image as ImageIcon,
+  Bell,
+  Settings,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { ImageUpload } from '@/components/ui/ImageUpload';
@@ -40,6 +42,11 @@ interface FormState {
   facebook: string;
   instagram: string;
   tiktok: string;
+  announcementText: string;
+  announcementLink: string;
+  copyright: string;
+  facebookPixelId: string;
+  darkModeDefault: string;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -65,7 +72,12 @@ function configToFormState(config: SiteConfigMap): FormState {
     address:        config['contact.address']       ?? '',
     facebook:       config['social.facebook']       ?? '',
     instagram:      config['social.instagram']      ?? '',
-    tiktok:         config['social.tiktok']         ?? '',
+    tiktok:           config['social.tiktok']           ?? '',
+    announcementText: config['nav.announcementText']    ?? '',
+    announcementLink: config['nav.announcementLink']    ?? '',
+    copyright:        config['contact.copyright']       ?? '',
+    facebookPixelId:  config['settings.facebookPixelId'] ?? '',
+    darkModeDefault:  config['settings.darkModeDefault'] ?? 'false',
   };
 }
 
@@ -201,7 +213,12 @@ export const SiteInfoForm: React.FC<SiteInfoFormProps> = ({ initialConfig }) => 
         'contact.address':        form.address,
         'social.facebook':        form.facebook,
         'social.instagram':       form.instagram,
-        'social.tiktok':          form.tiktok,
+        'social.tiktok':            form.tiktok,
+        'nav.announcementText':     form.announcementText,
+        'nav.announcementLink':     form.announcementLink,
+        'contact.copyright':        form.copyright,
+        'settings.facebookPixelId': form.facebookPixelId,
+        'settings.darkModeDefault': form.darkModeDefault,
       };
 
       const res = await fetch('/api/site-config', {
@@ -470,6 +487,104 @@ export const SiteInfoForm: React.FC<SiteInfoFormProps> = ({ initialConfig }) => 
               />
             </div>
           </Field>
+        </div>
+      </section>
+
+      {/* ── Announcement Bar ──────────────────────────────────────────────────── */}
+      <section>
+        <SectionHeading icon={<Bell size={18} />} title="Announcement Bar" />
+        <div className="flex flex-col gap-5">
+          <Field
+            label="Announcement Text"
+            htmlFor="announcementText"
+            hint="Shown as a strip above the navbar. Leave empty to hide it completely."
+          >
+            <input
+              id="announcementText"
+              name="announcementText"
+              type="text"
+              value={form.announcementText}
+              onChange={handleChange}
+              placeholder="🎉 Free delivery on orders over ৳500! Code: EID2026"
+              className={inputClass}
+            />
+          </Field>
+          <Field
+            label="Announcement Link"
+            htmlFor="announcementLink"
+            hint="URL the bar links to when clicked."
+          >
+            <input
+              id="announcementLink"
+              name="announcementLink"
+              type="text"
+              value={form.announcementLink}
+              onChange={handleChange}
+              placeholder="/products"
+              className={inputClass}
+            />
+          </Field>
+        </div>
+      </section>
+
+      {/* ── Advanced Settings ─────────────────────────────────────────────────── */}
+      <section>
+        <SectionHeading icon={<Settings size={18} />} title="Advanced Settings" />
+        <div className="flex flex-col gap-5">
+          <Field label="Copyright Text" htmlFor="copyright">
+            <input
+              id="copyright"
+              name="copyright"
+              type="text"
+              value={form.copyright}
+              onChange={handleChange}
+              placeholder="© 2026 My Store. All rights reserved."
+              className={inputClass}
+            />
+          </Field>
+          <Field
+            label="Facebook Pixel ID"
+            htmlFor="facebookPixelId"
+            hint="Paste your Pixel ID to enable Facebook tracking on the storefront."
+          >
+            <input
+              id="facebookPixelId"
+              name="facebookPixelId"
+              type="text"
+              value={form.facebookPixelId}
+              onChange={handleChange}
+              placeholder="1234567890123456"
+              className={inputClass}
+            />
+          </Field>
+          <div className="flex items-center justify-between rounded-xl border border-brand-secondary/30 px-4 py-3">
+            <div>
+              <p className="text-sm font-medium text-brand-text">Dark Mode Default</p>
+              <p className="text-xs text-brand-text/50 mt-0.5">
+                Storefront loads in dark mode by default for all visitors.
+              </p>
+            </div>
+            <label className="relative inline-flex cursor-pointer items-center shrink-0">
+              <input
+                type="checkbox"
+                checked={form.darkModeDefault === 'true'}
+                onChange={(e) =>
+                  setField('darkModeDefault', e.target.checked ? 'true' : 'false')
+                }
+                className="sr-only"
+              />
+              <div
+                className={`h-6 w-11 rounded-full transition-colors ${
+                  form.darkModeDefault === 'true' ? 'bg-brand-primary' : 'bg-gray-300'
+                }`}
+              />
+              <div
+                className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                  form.darkModeDefault === 'true' ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </label>
+          </div>
         </div>
       </section>
 
