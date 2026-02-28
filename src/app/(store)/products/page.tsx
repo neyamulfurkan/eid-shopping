@@ -5,6 +5,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
+import { Suspense } from 'react';
 import { ClientProductFilters } from './ClientProductFilters';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
@@ -414,11 +415,13 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
         </div>
 
         {/* ── Filters: Category + Sort (client island) ───────────────── */}
-        <ClientProductFilters
-          categories={categories}
-          selectedSlug={searchParams.category ?? null}
-          currentSort={currentSort}
-        />
+        <Suspense fallback={<div className="h-12 mb-6" />}>
+          <ClientProductFilters
+            categories={categories}
+            selectedSlug={searchParams.category ?? null}
+            currentSort={currentSort}
+          />
+        </Suspense>
 
         {/* ── Product Grid ────────────────────────────────────────────── */}
         <ProductGrid
