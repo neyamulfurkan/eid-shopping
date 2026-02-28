@@ -168,8 +168,8 @@ export const HomepageSections: React.FC<HomepageSectionsProps> = ({
             return (
               <div key="featured_products" className={CONTAINER_CLASS}>
                 <AnimatedSection>
-                  <section
-                    className="py-8"
+                                    <section
+                    className="pt-8 pb-2"
                     aria-labelledby="featured-products-heading"
                   >
                     <SectionHeading
@@ -187,7 +187,7 @@ export const HomepageSections: React.FC<HomepageSectionsProps> = ({
               <div key="new_arrivals" className={CONTAINER_CLASS}>
                 <AnimatedSection delay={0.05}>
                   <section
-                    className="py-8"
+                    className="pt-4 pb-8"
                     aria-labelledby="new-arrivals-heading"
                   >
                     <SectionHeading

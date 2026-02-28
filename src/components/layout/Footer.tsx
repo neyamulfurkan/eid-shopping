@@ -142,9 +142,9 @@ export const Footer: React.FC = () => {
   const email = config['contact.email'] || '';
   const address = config['contact.address'] || '';
   const whatsapp = config['contact.whatsapp'] || '';
-  const copyright =
+    const copyright =
     config['contact.copyright'] ||
-    `© ${new Date().getFullYear()} ${storeName}. ${t('footer.allRightsReserved')}`;
+    `© ${new Date().getFullYear()} ${storeName}. All rights reserved.`;
 
   const facebookUrl = config['social.facebook'] || '';
   const instagramUrl = config['social.instagram'] || '';
