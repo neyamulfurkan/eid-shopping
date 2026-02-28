@@ -165,7 +165,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({ endsAt, onExpire
         intervalRef.current = null;
       }
     };
-  }, [endsAt]);
+  }, [endsAt, mounted]);
 
   // Render nothing until client has mounted — avoids SSR/client HTML mismatch.
   if (!mounted) return null;
