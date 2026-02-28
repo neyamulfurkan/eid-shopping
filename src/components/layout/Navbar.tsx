@@ -1,4 +1,3 @@
-// src/components/layout/Navbar.tsx
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -87,7 +86,7 @@ const CountBadge: React.FC<BadgeProps> = ({ count }) => {
 /**
  * Main storefront navigation bar.
  * Sticky, scroll-aware, with announcement bar, mobile drawer, language toggle,
- * dark mode toggle, cart count, and wishlist count.
+ * dark mode toggle, cart count, wishlist count, and full-width search overlay.
  */
 export const Navbar: React.FC = () => {
   const config                   = useSiteConfig();
@@ -95,10 +94,11 @@ export const Navbar: React.FC = () => {
   const { count: wishlistCount } = useWishlist();
   const { lang, setLang, t }     = useLanguage();
   const pathname                 = usePathname();
+  const router                   = useRouter();
 
   // ── Derived config ────────────────────────
 
-    const storeName        = config['contact.storeName'] || 'Eid Store';
+  const storeName        = config['contact.storeName'] || 'Eid Store';
   const logoUrl          = config['contact.logo'] || '';
   const announcementText = config['nav.announcementText'] || '';
   const announcementLink = config['nav.announcementLink'] || '';
@@ -106,24 +106,23 @@ export const Navbar: React.FC = () => {
 
   // ── Local state ───────────────────────────
 
-    const [isMenuOpen,   setIsMenuOpen]   = useState(false);
+  const [isMenuOpen,   setIsMenuOpen]   = useState(false);
   const [isVisible,    setIsVisible]    = useState(true);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery,  setSearchQuery]  = useState('');
-
-  const router = useRouter();
 
   // Track scroll position for hide-on-scroll-down behaviour
   const lastScrollY = useRef(0);
 
   // Single source of truth for dark mode — lives in SiteConfigContext.
-  // hasMounted: false during SSR + first client render, true after useEffect.
-  // IMPORTANT: onClick is ALWAYS wired to toggleDarkMode — never gate the
-  // click handler on hasMounted, only gate the icon rendering (see below).
   const { isDark: isDarkMode, toggleDark: toggleDarkMode, hasMounted } = useDarkMode();
 
-    // ── Search submit ─────────────────────────
+  // ── Search handler ────────────────────────
 
+  /**
+   * Submits the search query by navigating to /products?search=query.
+   * Clears and closes the search overlay on submit.
+   */
   const handleSearch = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
@@ -150,6 +149,7 @@ export const Navbar: React.FC = () => {
         // Scrolling down — hide
         setIsVisible(false);
         setIsMenuOpen(false);
+        setIsSearchOpen(false);
       } else {
         // Scrolling up — show
         setIsVisible(true);
@@ -162,10 +162,12 @@ export const Navbar: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // ── Close mobile menu on route change ────
+  // ── Close mobile menu and search on route change ──
 
   useEffect(() => {
     setIsMenuOpen(false);
+    setIsSearchOpen(false);
+    setSearchQuery('');
   }, [pathname]);
 
   // ─────────────────────────────────────────
@@ -252,67 +254,6 @@ export const Navbar: React.FC = () => {
             ))}
           </nav>
 
-                    {/* ── Desktop Search ───────────── */}
-          <div className="hidden md:flex items-center">
-            <AnimatePresence mode="wait">
-              {isSearchOpen ? (
-                <motion.form
-                  key="search-open"
-                  onSubmit={handleSearch}
-                  initial={{ width: 0, opacity: 0 }}
-                  animate={{ width: 240, opacity: 1 }}
-                  exit={{ width: 0, opacity: 0 }}
-                  transition={{ duration: 0.2, ease: 'easeInOut' }}
-                  className="flex items-center overflow-hidden"
-                >
-                  <input
-                    autoFocus
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search products…"
-                    className={cn(
-                      'w-full h-9 px-3 text-sm rounded-l-xl',
-                      'border border-brand-secondary/30 border-r-0',
-                      'bg-brand-bg text-brand-text placeholder:text-brand-text/40',
-                      'focus:outline-none focus:ring-2 focus:ring-brand-primary/40',
-                    )}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => { setIsSearchOpen(false); setSearchQuery(''); }}
-                    className={cn(
-                      'h-9 px-2.5 rounded-r-xl flex items-center justify-center',
-                      'border border-brand-secondary/30 border-l-0',
-                      'bg-brand-bg text-brand-text/50 hover:text-brand-primary',
-                      'transition-colors duration-150',
-                    )}
-                    aria-label="Close search"
-                  >
-                    <X size={15} aria-hidden="true" />
-                  </button>
-                </motion.form>
-              ) : (
-                <motion.button
-                  key="search-closed"
-                  onClick={() => setIsSearchOpen(true)}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className={cn(
-                    'flex items-center justify-center',
-                    'h-9 w-9 rounded-lg',
-                    'text-brand-text/70 hover:text-brand-primary hover:bg-brand-primary/8',
-                    'transition-colors duration-150',
-                  )}
-                  aria-label="Open search"
-                >
-                  <Search size={18} aria-hidden="true" />
-                </motion.button>
-              )}
-            </AnimatePresence>
-          </div>
-
           {/* ── Right-side Icons ─────────── */}
           <div className="flex items-center gap-1 sm:gap-2">
 
@@ -330,16 +271,7 @@ export const Navbar: React.FC = () => {
               {lang === 'bn' ? 'EN' : 'বাং'}
             </button>
 
-            {/* ── Dark Mode Toggle ──────────────────────────────────────────
-              onClick is ALWAYS toggleDarkMode — never conditional.
-              Only the ICON is gated on hasMounted to avoid hydration mismatch:
-                · Server renders Moon (isDark=false).
-                · Client's first render also renders Moon (isDark still false,
-                  hasMounted still false) — identical to server → no mismatch.
-                · After useEffect: hasMounted=true, isDark=correct value from
-                  localStorage → icon updates to correct state.
-              The opacity-0 placeholder is invisible so the user never sees it.
-            ───────────────────────────────────────────────────────────────── */}
+            {/* Dark Mode Toggle */}
             <button
               onClick={toggleDarkMode}
               className={cn(
@@ -351,13 +283,36 @@ export const Navbar: React.FC = () => {
               aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
             >
               {!hasMounted ? (
-                // Invisible placeholder — same SVG structure as Moon so server
-                // and client HTML match during hydration. Never seen by user.
                 <Moon size={18} aria-hidden="true" className="opacity-0" />
               ) : isDarkMode ? (
                 <Sun  size={18} aria-hidden="true" />
               ) : (
                 <Moon size={18} aria-hidden="true" />
+              )}
+            </button>
+
+            {/* Search Toggle — opens/closes the full-width overlay */}
+            <button
+              onClick={() => {
+                setIsSearchOpen((prev) => !prev);
+                setSearchQuery('');
+                setIsMenuOpen(false);
+              }}
+              className={cn(
+                'flex items-center justify-center',
+                'h-9 w-9 rounded-lg',
+                isSearchOpen
+                  ? 'text-brand-primary bg-brand-primary/10'
+                  : 'text-brand-text/70 hover:text-brand-primary hover:bg-brand-primary/8',
+                'transition-colors duration-150',
+              )}
+              aria-label={isSearchOpen ? 'Close search' : 'Open search'}
+              aria-expanded={isSearchOpen}
+            >
+              {isSearchOpen ? (
+                <X size={18} aria-hidden="true" />
+              ) : (
+                <Search size={18} aria-hidden="true" />
               )}
             </button>
 
@@ -399,7 +354,11 @@ export const Navbar: React.FC = () => {
                 'text-brand-text/70 hover:text-brand-primary hover:bg-brand-primary/8',
                 'transition-colors duration-150',
               )}
-              onClick={() => setIsMenuOpen((prev) => !prev)}
+              onClick={() => {
+                setIsMenuOpen((prev) => !prev);
+                setIsSearchOpen(false);
+                setSearchQuery('');
+              }}
               aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={isMenuOpen}
               aria-controls="mobile-nav"
@@ -412,6 +371,76 @@ export const Navbar: React.FC = () => {
             </button>
           </div>
         </div>
+
+        {/* ── Full-Width Search Overlay ──────── */}
+        {/*
+          Appears below the navbar bar on both mobile and desktop.
+          Does not shift any navbar content — purely additive overlay.
+          Auto-focuses the input when opened.
+        */}
+        <AnimatePresence>
+          {isSearchOpen && (
+            <motion.div
+              key="search-overlay"
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+              className={cn(
+                'absolute top-full left-0 right-0 z-50',
+                'bg-brand-surface/98 backdrop-blur-sm',
+                'border-b border-brand-secondary/20 shadow-lg',
+              )}
+            >
+              <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-3">
+                <form
+                  onSubmit={handleSearch}
+                  className="flex items-center gap-3"
+                  role="search"
+                >
+                  <Search
+                    size={18}
+                    className="text-brand-text/40 flex-shrink-0"
+                    aria-hidden="true"
+                  />
+                  <input
+                    autoFocus
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search for sarees, panjabi, cosmetics…"
+                    className={cn(
+                      'flex-1 h-10 bg-transparent text-sm',
+                      'text-brand-text placeholder:text-brand-text/40',
+                      'focus:outline-none',
+                    )}
+                    aria-label="Search products"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery('')}
+                      className="text-brand-text/40 hover:text-brand-text transition-colors flex-shrink-0"
+                      aria-label="Clear input"
+                    >
+                      <X size={16} aria-hidden="true" />
+                    </button>
+                  )}
+                  <button
+                    type="submit"
+                    className={cn(
+                      'flex-shrink-0 px-5 h-9 rounded-xl text-sm font-semibold',
+                      'bg-brand-primary text-white',
+                      'hover:opacity-90 active:scale-95 transition-all duration-150',
+                    )}
+                  >
+                    Search
+                  </button>
+                </form>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* ── Mobile Drawer ─────────────────── */}
         <AnimatePresence>
@@ -429,33 +458,7 @@ export const Navbar: React.FC = () => {
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.22, ease: 'easeInOut' }}
             >
-                      <div className="px-4 py-3 flex flex-col gap-1">
-                {/* Mobile Search */}
-                <form onSubmit={handleSearch} className="flex items-center gap-2 mb-2">
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search products…"
-                    className={cn(
-                      'flex-1 h-10 px-3 text-sm rounded-xl',
-                      'border border-brand-secondary/30',
-                      'bg-brand-bg text-brand-text placeholder:text-brand-text/40',
-                      'focus:outline-none focus:ring-2 focus:ring-brand-primary/40',
-                    )}
-                  />
-                  <button
-                    type="submit"
-                    className={cn(
-                      'h-10 w-10 flex items-center justify-center rounded-xl flex-shrink-0',
-                      'bg-brand-primary text-white hover:opacity-90 transition-opacity',
-                    )}
-                    aria-label="Search"
-                  >
-                    <Search size={16} aria-hidden="true" />
-                  </button>
-                </form>
-
+              <div className="px-4 py-3 flex flex-col gap-1">
                 {navLinks.map((link) => (
                   <Link
                     key={link.href}
