@@ -1,10 +1,10 @@
 // src/components/layout/Navbar.tsx
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Menu,
@@ -13,6 +13,7 @@ import {
   Heart,
   Sun,
   Moon,
+  Search,
 } from 'lucide-react';
 
 import { useSiteConfig, useDarkMode } from '@/context/SiteConfigContext';
@@ -105,8 +106,12 @@ export const Navbar: React.FC = () => {
 
   // ── Local state ───────────────────────────
 
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isVisible,  setIsVisible]  = useState(true);
+    const [isMenuOpen,   setIsMenuOpen]   = useState(false);
+  const [isVisible,    setIsVisible]    = useState(true);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery,  setSearchQuery]  = useState('');
+
+  const router = useRouter();
 
   // Track scroll position for hide-on-scroll-down behaviour
   const lastScrollY = useRef(0);
@@ -116,6 +121,21 @@ export const Navbar: React.FC = () => {
   // IMPORTANT: onClick is ALWAYS wired to toggleDarkMode — never gate the
   // click handler on hasMounted, only gate the icon rendering (see below).
   const { isDark: isDarkMode, toggleDark: toggleDarkMode, hasMounted } = useDarkMode();
+
+    // ── Search submit ─────────────────────────
+
+  const handleSearch = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      const q = searchQuery.trim();
+      if (!q) return;
+      router.push(`/products?search=${encodeURIComponent(q)}`);
+      setSearchQuery('');
+      setIsSearchOpen(false);
+      setIsMenuOpen(false);
+    },
+    [searchQuery, router],
+  );
 
   // ── Scroll hide / show ────────────────────
 
@@ -231,6 +251,67 @@ export const Navbar: React.FC = () => {
               </Link>
             ))}
           </nav>
+
+                    {/* ── Desktop Search ───────────── */}
+          <div className="hidden md:flex items-center">
+            <AnimatePresence mode="wait">
+              {isSearchOpen ? (
+                <motion.form
+                  key="search-open"
+                  onSubmit={handleSearch}
+                  initial={{ width: 0, opacity: 0 }}
+                  animate={{ width: 240, opacity: 1 }}
+                  exit={{ width: 0, opacity: 0 }}
+                  transition={{ duration: 0.2, ease: 'easeInOut' }}
+                  className="flex items-center overflow-hidden"
+                >
+                  <input
+                    autoFocus
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search products…"
+                    className={cn(
+                      'w-full h-9 px-3 text-sm rounded-l-xl',
+                      'border border-brand-secondary/30 border-r-0',
+                      'bg-brand-bg text-brand-text placeholder:text-brand-text/40',
+                      'focus:outline-none focus:ring-2 focus:ring-brand-primary/40',
+                    )}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => { setIsSearchOpen(false); setSearchQuery(''); }}
+                    className={cn(
+                      'h-9 px-2.5 rounded-r-xl flex items-center justify-center',
+                      'border border-brand-secondary/30 border-l-0',
+                      'bg-brand-bg text-brand-text/50 hover:text-brand-primary',
+                      'transition-colors duration-150',
+                    )}
+                    aria-label="Close search"
+                  >
+                    <X size={15} aria-hidden="true" />
+                  </button>
+                </motion.form>
+              ) : (
+                <motion.button
+                  key="search-closed"
+                  onClick={() => setIsSearchOpen(true)}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className={cn(
+                    'flex items-center justify-center',
+                    'h-9 w-9 rounded-lg',
+                    'text-brand-text/70 hover:text-brand-primary hover:bg-brand-primary/8',
+                    'transition-colors duration-150',
+                  )}
+                  aria-label="Open search"
+                >
+                  <Search size={18} aria-hidden="true" />
+                </motion.button>
+              )}
+            </AnimatePresence>
+          </div>
 
           {/* ── Right-side Icons ─────────── */}
           <div className="flex items-center gap-1 sm:gap-2">
@@ -348,7 +429,33 @@ export const Navbar: React.FC = () => {
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.22, ease: 'easeInOut' }}
             >
-              <div className="px-4 py-3 flex flex-col gap-1">
+                      <div className="px-4 py-3 flex flex-col gap-1">
+                {/* Mobile Search */}
+                <form onSubmit={handleSearch} className="flex items-center gap-2 mb-2">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search products…"
+                    className={cn(
+                      'flex-1 h-10 px-3 text-sm rounded-xl',
+                      'border border-brand-secondary/30',
+                      'bg-brand-bg text-brand-text placeholder:text-brand-text/40',
+                      'focus:outline-none focus:ring-2 focus:ring-brand-primary/40',
+                    )}
+                  />
+                  <button
+                    type="submit"
+                    className={cn(
+                      'h-10 w-10 flex items-center justify-center rounded-xl flex-shrink-0',
+                      'bg-brand-primary text-white hover:opacity-90 transition-opacity',
+                    )}
+                    aria-label="Search"
+                  >
+                    <Search size={16} aria-hidden="true" />
+                  </button>
+                </form>
+
                 {navLinks.map((link) => (
                   <Link
                     key={link.href}

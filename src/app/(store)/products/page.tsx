@@ -274,6 +274,7 @@ interface ProductsPageProps {
     category?: string;
     page?: string;
     sort?: string;
+    search?: string;
   };
 }
 
@@ -286,9 +287,10 @@ interface ProductsPageProps {
  * @returns The full products page including Navbar, filters, product grid, pagination, and Footer.
  */
 export default async function ProductsPage({ searchParams }: ProductsPageProps) {
-  const currentSort = (searchParams.sort as SortOption) || 'newest';
-  const page        = Math.max(1, Number(searchParams.page) || 1);
-  const skip        = (page - 1) * PAGE_LIMIT;
+    const currentSort   = (searchParams.sort as SortOption) || 'newest';
+  const page          = Math.max(1, Number(searchParams.page) || 1);
+  const skip          = (page - 1) * PAGE_LIMIT;
+  const currentSearch = searchParams.search?.trim() ?? '';
 
   // ── Build Prisma where clause ─────────────────────────────────────────
 
@@ -296,6 +298,14 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     isActive: true,
     ...(searchParams.category
       ? { category: { slug: searchParams.category } }
+      : {}),
+    ...(currentSearch
+      ? {
+          OR: [
+            { nameEn: { contains: currentSearch, mode: 'insensitive' as const } },
+            { nameBn: { contains: currentSearch, mode: 'insensitive' as const } },
+          ],
+        }
       : {}),
   };
 
@@ -375,22 +385,13 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
 
   // ── Build base URL for pagination links (no page param) ───────────────
 
-  const paginationBase = [
-    '/products',
-    searchParams.category ? `category=${encodeURIComponent(searchParams.category)}` : null,
-    currentSort !== 'newest' ? `sort=${currentSort}` : null,
-  ]
-    .filter(Boolean)
-    .join('?')
-    .replace('/products?', '/products?') // no-op but keeps intent clear
-    // Rebuild cleanly:
-    .split('?')[0] +
-    (() => {
-      const qs: string[] = [];
-      if (searchParams.category) qs.push(`category=${encodeURIComponent(searchParams.category)}`);
-      if (currentSort !== 'newest') qs.push(`sort=${currentSort}`);
-      return qs.length ? `?${qs.join('&')}` : '';
-    })();
+    const paginationBase = '/products' + (() => {
+    const qs: string[] = [];
+    if (searchParams.category) qs.push(`category=${encodeURIComponent(searchParams.category)}`);
+    if (currentSort !== 'newest') qs.push(`sort=${currentSort}`);
+    if (currentSearch) qs.push(`search=${encodeURIComponent(currentSearch)}`);
+    return qs.length ? `?${qs.join('&')}` : '';
+  })();
 
   // ─────────────────────────────────────────────
   // Render
@@ -404,8 +405,8 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
 
         {/* ── Page Header ────────────────────────────────────────────── */}
         <div className="mb-6">
-          <h1 className="text-2xl sm:text-3xl font-bold text-brand-text">
-            Products
+                    <h1 className="text-2xl sm:text-3xl font-bold text-brand-text">
+            {currentSearch ? `Results for "${currentSearch}"` : 'Products'}
           </h1>
           {totalProducts > 0 && (
             <p className="text-sm text-brand-text/50 mt-1">
@@ -417,10 +418,11 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
 
         {/* ── Filters: Category + Sort (client island) ───────────────── */}
         <Suspense fallback={<div className="h-12 mb-6" />}>
-          <ClientProductFilters
+                    <ClientProductFilters
             categories={categories}
             selectedSlug={searchParams.category ?? null}
             currentSort={currentSort}
+            currentSearch={currentSearch}
           />
         </Suspense>
 
